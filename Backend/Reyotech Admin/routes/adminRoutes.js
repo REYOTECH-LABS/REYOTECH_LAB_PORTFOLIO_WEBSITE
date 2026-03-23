@@ -66,4 +66,56 @@ router.post("/signup", validateSignup, handleValidationErrors, async (req, res) 
 	}
 });
 
+router.post("/login", async (req, res) => {
+	try {
+		const { email, password } = req.body;
+
+		// Validate input
+		if (!email || !password) {
+			return res.status(400).json({
+				success: false,
+				message: "Email and password are required",
+			});
+		}
+
+		// Find admin by email
+		const admin = await Admin.findOne({ email: email.toLowerCase() });
+		if (!admin) {
+			return res.status(401).json({
+				success: false,
+				message: "Invalid email or password",
+			});
+		}
+
+		// Compare password
+		const isPasswordValid = await bcrypt.compare(password, admin.password);
+		if (!isPasswordValid) {
+			return res.status(401).json({
+				success: false,
+				message: "Invalid email or password",
+			});
+		}
+
+		res.status(200).json({
+			success: true,
+			message: "Login successful",
+			admin: {
+				id: admin._id,
+				name: admin.name,
+				email: admin.email,
+				role: admin.role,
+				department: admin.department,
+				status: admin.status,
+			},
+		});
+
+	} catch (error) {
+		console.error("Login error:", error);
+		res.status(500).json({
+			success: false,
+			message: "Server error during login",
+		});
+	}
+});
+
 export default router;

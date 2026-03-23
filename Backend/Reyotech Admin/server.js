@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import mongoSanitize from "express-mongo-sanitize";
+// import mongoSanitize from "express-mongo-sanitize";
 import connectDB from "./config/db.js";
 import adminRoutes from "./routes/adminRoutes.js";
 
@@ -19,8 +19,6 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// mongoSanitize is incompatible with Express 5.x - validation middleware handles sanitization
-// app.use(mongoSanitize());
 
 // Connect to database
 connectDB();
@@ -37,12 +35,4 @@ const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
 	console.log(`Server running on port ${PORT}`);
-});
-
-app.use((err, req, res, next) => {
-	console.error(err.stack);
-	res.status(err.status || 500).json({
-		success: false,
-		message: err.message || "Something went wrong",
-	});
 });
