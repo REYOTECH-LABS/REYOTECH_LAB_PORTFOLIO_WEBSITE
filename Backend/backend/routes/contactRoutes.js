@@ -30,6 +30,12 @@ const contactValidation = [
     .isEmail()
     .withMessage("Please provide a valid email address"),
 
+  body("subject")
+    .optional()
+    .trim()
+    .isIn(["General Enquiry", "Project Request", "Partnership", "Career", "Other"])
+    .withMessage("Invalid subject selected"),
+
   body("message")
     .trim()
     .notEmpty()

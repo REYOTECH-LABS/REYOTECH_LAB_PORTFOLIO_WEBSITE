@@ -15,17 +15,16 @@ const submitContact = async (req, res) => {
     });
   }
 
-  const { name, email, message } = req.body;
+  const { name, email, subject = "General Enquiry", message } = req.body;
 
   try {
     // Save message to database
-    const newMessage = await Message.create({ name, email, message });
+    const newMessage = await Message.create({ name, email, subject, message });
 
     // Send email notification to REYOTECH LABS
     try {
-      await sendContactNotification({ name, email, message });
+      await sendContactNotification({ name, email, subject, message });
     } catch (emailError) {
-      // Email failure should not block the response
       console.error("Email notification failed:", emailError.message);
     }
 

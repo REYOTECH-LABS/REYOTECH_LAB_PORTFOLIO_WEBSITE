@@ -13,6 +13,11 @@ const messageSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
+    subject: {
+      type: String,
+      default: "General Enquiry",
+      trim: true,
+    },
     message: {
       type: String,
       required: [true, "Message is required"],
