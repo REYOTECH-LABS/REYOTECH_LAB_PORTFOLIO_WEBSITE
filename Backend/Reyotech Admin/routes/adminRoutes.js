@@ -27,7 +27,7 @@ router.post("/signup", validateSignup, handleValidationErrors, async (req, res) 
 			name: name.trim(),
 			email: email.toLowerCase().trim(),
 			password: hashedPassword,
-			role: role || "admin",
+			role: role,
 			department: department || null,
 		});
 

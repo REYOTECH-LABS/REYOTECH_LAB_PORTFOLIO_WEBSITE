@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import bcrypt from "bcrypt";
 
 const adminSchema = new mongoose.Schema(
 {
@@ -14,12 +13,6 @@ email: {
     unique: true,
     lowercase: true,
     trim: true,
-    validate: {
-        validator: function(v) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-        },
-        message: 'Please enter a valid email address'
-    }
 },
 
 isEmailVerified: {
