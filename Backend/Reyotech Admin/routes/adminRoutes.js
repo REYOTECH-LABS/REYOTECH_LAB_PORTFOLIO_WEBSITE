@@ -1,9 +1,39 @@
 import express from "express";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import Admin from "../models/admin.js";
-import { validateSignup, handleValidationErrors } from '../middleware/validation.js';
+import AdminSession from "../models/adminSession.js";
+import { validateSignup, validateLogin, handleValidationErrors } from '../middleware/validation.js';
 
 const router = express.Router();
+
+// Helper function to parse device info from user agent
+const getDeviceInfo = (userAgent) => {
+	if (!userAgent) return "Unknown Device";
+
+	const devicePatterns = {
+		"iPhone": "iPhone",
+		"iPad": "iPad",
+		"Android": "Android",
+		"Windows": "Windows",
+		"Macintosh": "macOS",
+		"Linux": "Linux",
+		"Chrome": "Chrome",
+		"Firefox": "Firefox",
+		"Safari": "Safari",
+		"Edge": "Edge",
+	};
+
+	let deviceInfo = "Unknown Device";
+	for (const [key, value] of Object.entries(devicePatterns)) {
+		if (userAgent.includes(key)) {
+			deviceInfo = value;
+			break;
+		}
+	}
+
+	return deviceInfo;
+};
 
 router.post("/signup", validateSignup, handleValidationErrors, async (req, res) => {
 	try {
@@ -66,17 +96,9 @@ router.post("/signup", validateSignup, handleValidationErrors, async (req, res) 
 	}
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", validateLogin, handleValidationErrors, async (req, res) => {
 	try {
 		const { email, password } = req.body;
-
-		// Validate input
-		if (!email || !password) {
-			return res.status(400).json({
-				success: false,
-				message: "Email and password are required",
-			});
-		}
 
 		// Find admin by email
 		const admin = await Admin.findOne({ email: email.toLowerCase() });
@@ -84,6 +106,19 @@ router.post("/login", async (req, res) => {
 			return res.status(401).json({
 				success: false,
 				message: "Invalid email or password",
+			});
+		}
+
+		// Check admin status
+		if (admin.status !== 'active') {
+			const statusMessages = {
+				deactivated: "Your account has been deactivated. Please contact support.",
+				suspended: "Your account has been suspended. Please contact support.",
+				deleted: "Your account has been deleted.",
+			};
+			return res.status(403).json({
+				success: false,
+				message: statusMessages[admin.status] || "You are not permitted to login.",
 			});
 		}
 
@@ -95,6 +130,47 @@ router.post("/login", async (req, res) => {
 				message: "Invalid email or password",
 			});
 		}
+
+		// Create JWT token
+		const token = jwt.sign(
+			{ adminId: admin._id, email: admin.email },
+			process.env.JWT_SECRET,
+			{ expiresIn: "7d" }
+		);
+
+		// Get device info from user agent
+		const userAgent = req.headers['user-agent'] || 'Unknown Device';
+		const deviceInfo = getDeviceInfo(userAgent);
+
+		// Get IP address
+		const ipAddress = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'] || "Unknown IP";
+
+		// Set expiry date to 7 days from now
+		const expiresAt = new Date();
+		expiresAt.setDate(expiresAt.getDate() + 7);
+
+		// Delete session with same adminId and ipAddress
+		await AdminSession.deleteMany({ adminId: admin._id, ipAddress: ipAddress });
+
+		// Create new session document
+		const newSession = new AdminSession({
+			adminId: admin._id,
+			token: token,
+			deviceInfo: deviceInfo,
+			ipAddress: ipAddress,
+			isActive: true,
+			expiresAt: expiresAt,
+		});
+
+		await newSession.save();
+
+		// Send JWT token as cookie
+		res.cookie('authToken', token, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: 'lax',
+			maxAge: 7 * 24 * 60 * 60 * 1000,
+		});
 
 		res.status(200).json({
 			success: true,

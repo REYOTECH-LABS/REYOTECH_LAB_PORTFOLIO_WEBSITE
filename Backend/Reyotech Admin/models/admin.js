@@ -34,7 +34,7 @@ role: {
 
 status: {
     type: String,
-    enum: ['active', 'inactive', 'suspended', 'deleted'],
+    enum: ['active', 'deactivated', 'suspended', 'deleted'],
     default: 'active'
 },
 

@@ -25,6 +25,18 @@ export const validateSignup = [
     .withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
 ];
 
+export const validateLogin = [
+  body('email')
+    .trim()
+    .isEmail()
+    .withMessage('Please provide a valid email')
+    .normalizeEmail(),
+  
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required'),
+];
+
 export const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
