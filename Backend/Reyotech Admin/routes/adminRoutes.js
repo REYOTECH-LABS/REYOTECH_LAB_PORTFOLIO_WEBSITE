@@ -11,28 +11,44 @@ const router = express.Router();
 const getDeviceInfo = (userAgent) => {
 	if (!userAgent) return "Unknown Device";
 
-	const devicePatterns = {
-		"iPhone": "iPhone",
-		"iPad": "iPad",
-		"Android": "Android",
-		"Windows": "Windows",
-		"Macintosh": "macOS",
-		"Linux": "Linux",
-		"Chrome": "Chrome",
-		"Firefox": "Firefox",
-		"Safari": "Safari",
-		"Edge": "Edge",
+	const browsers = {
+		Chrome: "Chrome",
+		Firefox: "Firefox",
+		Safari: "Safari",
+		Edge: "Edge",
+		Opera: "Opera",
+		Postman: "Postman"
 	};
 
-	let deviceInfo = "Unknown Device";
-	for (const [key, value] of Object.entries(devicePatterns)) {
+	let browser = "Unknown Browser";
+
+	for (const [key, value] of Object.entries(browsers)) {
 		if (userAgent.includes(key)) {
-			deviceInfo = value;
+			browser = value;
 			break;
 		}
 	}
 
-	return deviceInfo;
+	const operatingSystems = {
+		iPhone: "iPhone",
+		iPad: "iPad",
+		Android: "Android",
+		Windows: "Windows",
+		Macintosh: "macOS",
+		Linux: "Linux",
+		X11: "Linux"
+	}
+
+	let os = "Unknown OS";
+
+	for (const [key, value] of Object.entries(operatingSystems)) {
+		if (userAgent.includes(key)) {
+			os = value;
+			break;
+		}
+	}
+
+	return `${browser} on ${os}`;
 };
 
 router.post("/signup", validateSignup, handleValidationErrors, async (req, res) => {
@@ -155,7 +171,7 @@ router.post("/login", validateLogin, handleValidationErrors, async (req, res) =>
 		// Create new session document
 		const newSession = new AdminSession({
 			adminId: admin._id,
-			token: token,
+			token: token.substring(0, 50),
 			deviceInfo: deviceInfo,
 			ipAddress: ipAddress,
 			isActive: true,
@@ -190,6 +206,44 @@ router.post("/login", validateLogin, handleValidationErrors, async (req, res) =>
 		res.status(500).json({
 			success: false,
 			message: "Server error during login",
+		});
+	}
+});
+
+router.post("/logout", async (req, res) => {
+	try {
+		const token = req.cookies.authToken || req.headers.authorization?.split(' ')[1];
+
+		if (!token) {
+			return res.status(400).json({
+				success: false,
+				message: "No session token found",
+			});
+		}
+
+		// Delete only the active session with matching token
+		const sessionDeleted = await AdminSession.deleteOne({
+			token: token.substring(0, 50),
+			isActive: true
+		});
+
+		// Clear the cookie
+		res.clearCookie('authToken', {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: 'lax',
+		});
+
+		res.status(200).json({
+			success: true,
+			message: "Logout successful",
+		});
+
+	} catch (error) {
+		console.error("Logout error:", error);
+		res.status(500).json({
+			success: false,
+			message: "Server error during logout",
 		});
 	}
 });

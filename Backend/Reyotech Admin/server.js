@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 // import mongoSanitize from "express-mongo-sanitize";
 import connectDB from "./config/db.js";
 import adminRoutes from "./routes/adminRoutes.js";
@@ -19,6 +20,8 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(express.static('frontend'));
 
 // Connect to database
 connectDB();
@@ -26,9 +29,8 @@ connectDB();
 // Routes
 app.use("/api/admin", adminRoutes);
 
-// Basic route for testing
-app.get("/", (req, res) => {
-	res.json({ message: "Reyotech Admin API is running" });
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/frontend/index.html');
 });
 
 const PORT = process.env.PORT || 3000;

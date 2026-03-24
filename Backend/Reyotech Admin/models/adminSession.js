@@ -14,11 +14,11 @@ const adminSessionSchema = new mongoose.Schema(
 		},
 		deviceInfo: {
 			type: String,
-			default: "Unknown Device"
+			default: "Unknown Device",
 		},
 		ipAddress: {
 			type: String,
-			default: "Unknown IP"
+			default: "Unknown IP",
 		},
 		isActive: {
 			type: Boolean,
