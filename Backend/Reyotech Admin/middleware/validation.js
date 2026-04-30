@@ -1,5 +1,4 @@
-import { body, validationResult } from 'express-validator';
-// import { sanitize } from 'express-mongo-sanitize';
+import { body, validationResult } from 'express-validator'
 
 export const validateSignup = [
   body('name')
@@ -9,36 +8,37 @@ export const validateSignup = [
     .matches(/^[a-zA-Z\s]+$/)
     .withMessage('Name can only contain letters and spaces')
     .escape(),
-
   body('email')
     .trim()
     .isEmail()
     .withMessage('Please provide a valid email')
-    .normalizeEmail()
+    .normalizeEmail({
+      gmail_remove_dots: false
+    })
     .isLength({ max: 100 })
     .withMessage('Email is too long'),
-
   body('password')
     .isLength({ min: 8 })
     .withMessage('Password must be at least 8 characters')
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
-];
+    .withMessage(
+      'Password must contain at least one uppercase letter, one lowercase letter, and one number'
+    )
+]
 
 export const validateLogin = [
   body('email')
     .trim()
     .isEmail()
     .withMessage('Please provide a valid email')
-    .normalizeEmail(),
-  
-  body('password')
-    .notEmpty()
-    .withMessage('Password is required'),
-];
+    .normalizeEmail({
+      gmail_remove_dots: false
+    }),
+  body('password').notEmpty().withMessage('Password is required')
+]
 
 export const handleValidationErrors = (req, res, next) => {
-  const errors = validationResult(req);
+  const errors = validationResult(req)
   if (!errors.isEmpty()) {
     return res.status(400).json({
       success: false,
@@ -48,7 +48,7 @@ export const handleValidationErrors = (req, res, next) => {
         message: err.msg,
         value: err.value
       }))
-    });
+    })
   }
-  next();
-};
+  next()
+}
