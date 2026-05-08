@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-teal: #2CB7C6;
+  --color-brand-dark: #0D1117;
+  --color-brand-forest: #1B2420;
+  --color-brand-silver: #4D5156;
+  --color-brand-light: #F8F9FA;
+  --font-display: "Mona Sans", "Inter", sans-serif;
+}
+
+body {
+  background-color: white;
+  color: #0D1117;
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-8 py-4 bg-brand-teal text-brand-dark font-black uppercase tracking-widest text-[10px] rounded-full hover:bg-brand-dark hover:text-white transition-all duration-300 flex items-center justify-center gap-2;
+  }
+  
+  .btn-outline {
+    @apply px-8 py-4 border border-brand-dark/20 text-brand-dark font-black uppercase tracking-widest text-[10px] rounded-full hover:border-brand-teal hover:text-brand-teal transition-all duration-300 flex items-center justify-center gap-2;
+  }
+
+  .bento-card {
+    @apply p-8 rounded-[40px] border border-brand-dark/5 bg-brand-light transition-all duration-500 hover:shadow-2xl hover:shadow-brand-teal/10 relative;
+  }
+
+  .glass {
+    @apply backdrop-blur-xl bg-white/80 border border-brand-dark/10 shadow-lg;
+  }
+
+  .mega-menu-item {
+    @apply p-6 rounded-3xl hover:bg-brand-light transition-all duration-300;
+  }
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #0D1117 0%, #1FDBA5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

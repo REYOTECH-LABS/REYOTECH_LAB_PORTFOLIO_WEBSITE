@@ -1,11 +1,8 @@
 import adminSession from '../models/adminSession.js'
 import admin from '../models/admin.js'
 import { UAParser } from 'ua-parser-js'
-import 'dotenv/config'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-
-const { NODE_ENV, ACCESS_SECRET, REFRESH_SECRET } = process.env
 
 export async function logout (req, res, next) {
   try {
@@ -67,8 +64,8 @@ export async function login (req, res, next) {
 
     const payload = { sub: Admin.id, role: 'admin' }
 
-    const accessToken = jwt.sign(payload, ACCESS_SECRET, { expiresIn: '15m' })
-    const refreshToken = jwt.sign(payload, REFRESH_SECRET, { expiresIn: '7d' })
+    const accessToken = jwt.sign(payload, process.env.ACCESS_SECRET, { expiresIn: '15m' })
+    const refreshToken = jwt.sign(payload, process.env.REFRESH_SECRET, { expiresIn: '7d' })
 
     const adminRecord = await adminSession.findOne({
       adminId: Admin.id
@@ -88,21 +85,13 @@ export async function login (req, res, next) {
       })
     }
 
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    })
+    const cookieOpts = { httpOnly: true, secure: process.env.NODE_ENV === 'production' }
 
-    res.cookie('accessToken', accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: 15 * 60 * 1000
-    })
+    res.cookie('refreshToken', refreshToken, { ...cookieOpts, maxAge: 7 * 24 * 60 * 60 * 1000 })
+    res.cookie('accessToken', accessToken, { ...cookieOpts, sameSite: 'lax', maxAge: 15 * 60 * 1000 })
 
     res.status(200).json({
-      success: 'sucess',
+      success: true,
       message: 'Login successful',
       admin: {
         //Exposing too much here will figure out what frontend actually needs and what goes into other routes
@@ -153,8 +142,8 @@ export async function register (req, res, next) {
 
     const payload = { sub: Admin.id, role: 'admin' }
 
-    const accessToken = jwt.sign(payload, ACCESS_SECRET, { expiresIn: '15m' })
-    const refreshToken = jwt.sign(payload, REFRESH_SECRET, { expiresIn: '7d' })
+    const accessToken = jwt.sign(payload, process.env.ACCESS_SECRET, { expiresIn: '15m' })
+    const refreshToken = jwt.sign(payload, process.env.REFRESH_SECRET, { expiresIn: '7d' })
 
     await adminSession.create({
       adminId: Admin.id,
@@ -164,18 +153,9 @@ export async function register (req, res, next) {
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     })
 
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    })
-
-    res.cookie('accessToken', accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: 15 * 60 * 1000
-    })
+    const cookieOpts = { httpOnly: true, secure: process.env.NODE_ENV === 'production' }
+    res.cookie('refreshToken', refreshToken, { ...cookieOpts, maxAge: 7 * 24 * 60 * 60 * 1000 })
+    res.cookie('accessToken', accessToken, { ...cookieOpts, sameSite: 'lax', maxAge: 15 * 60 * 1000 })
 
     res.status(201).json({
       success: true,
