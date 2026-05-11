@@ -53,7 +53,7 @@ const Auth = () => {
 
       <div className='relative z-10 w-full max-w-md'>
         {/* Card */}
-        <div className='bg-white rounded-[40px] p-8 md:p-10 shadow-2xl'>
+        <div className='bg-white rounded-[40px] max-lg:mt-40 p-8 md:p-10 shadow-2xl'>
           {/* Tabs */}
           <div className='flex bg-brand-light rounded-2xl p-1 mb-8'>
             <button
